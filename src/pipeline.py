@@ -45,20 +45,18 @@ def ingest_data():
         raise
 
 def process_data(df):
-    """Process and aggregate data using PySpark."""
     try:
         logger.info("Starting data processing")
-        # Convert Pandas DF to Spark DF
         spark_df = spark.createDataFrame(df)
-        
-        # Example aggregation: Count trips by pickup hour and location
+        spark_df = spark_df.withColumn(
+            "pickup_hour",
+            F.hour(F.to_timestamp("lpep_pickup_datetime", "yyyy-MM-dd HH:mm:ss"))
+        )
         aggregated_df = spark_df.groupBy(
-            F.hour("tpep_pickup_datetime").alias("pickup_hour"),
-            "PULocationID"
+            "pickup_hour"
         ).agg(
             F.count("*").alias("trip_count")
         )
-        
         logger.info("Data processed successfully")
         return aggregated_df
     except Exception as e:
