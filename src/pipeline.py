@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 spark = SparkSession.builder \
     .appName("NYC Taxi Data Processing") \
     .config("spark.mongodb.output.uri", "mongodb://mongo:27017/taxi_db.processed_data") \
+    .config("spark.jars", "/app/jars/mongo-spark-connector_2.12-10.3.0.jar") \
     .getOrCreate()
 
 # Initialize Flask app
@@ -48,33 +49,36 @@ def process_data(df):
     try:
         logger.info("Starting data processing")
         spark_df = spark.createDataFrame(df)
+        logger.info(f"Created Spark DataFrame with {spark_df.count()} rows")
         spark_df = spark_df.withColumn(
             "pickup_hour",
             F.hour(F.to_timestamp("lpep_pickup_datetime", "yyyy-MM-dd HH:mm:ss"))
         )
+        logger.info("Extracted pickup_hour column")
         aggregated_df = spark_df.groupBy(
             "pickup_hour"
         ).agg(
             F.count("*").alias("trip_count")
         )
+        logger.info(f"Aggregated DataFrame has {aggregated_df.count()} rows")
         logger.info("Data processed successfully")
         return aggregated_df
     except Exception as e:
-        logger.error("Error during processing: %s", e)
+        logger.error(f"Error during processing: {str(e)}", exc_info=True)
         raise
 
 def store_data(spark_df):
-    """Store processed data in MongoDB."""
     try:
         logger.info("Storing data in MongoDB")
-        # Write to MongoDB
+        row_count = spark_df.count()
+        logger.info(f"Attempting to store {row_count} rows")
         spark_df.write \
             .format("mongo") \
             .mode("append") \
             .save()
         logger.info("Data stored successfully")
     except Exception as e:
-        logger.error("Error during storage: %s", e)
+        logger.error(f"Error during storage: {str(e)}", exc_info=True)
         raise
 
 def schedule_pipeline():
