@@ -1,18 +1,8 @@
-# Use official Python image
 FROM python:3.9-slim
-
-# Set working directory
 WORKDIR /app
-
-# Install dependencies
-COPY requirements.txt .
+COPY config/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
-COPY . .
-
-# Expose Flask port
+COPY src/ src/
+COPY nyc_taxi_data.csv .
 EXPOSE 5000
-
-# Command to run the application
-CMD ["python", "pipeline.py"]
+CMD ["python", "src/pipeline.py"]
