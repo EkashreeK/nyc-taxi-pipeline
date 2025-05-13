@@ -48,6 +48,7 @@ def ingest_data():
 def process_data(df):
     try:
         logger.info("Starting data processing")
+        logger.info(f"Pandas DataFrame has {len(df)} rows")
         spark_df = spark.createDataFrame(df)
         logger.info(f"Created Spark DataFrame with {spark_df.count()} rows")
         spark_df = spark_df.withColumn(
