@@ -22,9 +22,7 @@ spark = SparkSession.builder \
 # Initialize Flask app
 app = Flask(__name__)
 
-# Simulated NYC Taxi dataset path (replace with actual CSV path)
-DATA_PATH = "./nyc_taxi_data.csv"
-
+DATA_PATH = "./nyc_taxi_data_small.csv"
 # MongoDB connection
 mongo_client = MongoClient("mongodb://mongo:27017/")
 db = mongo_client["taxi_db"]
@@ -44,16 +42,15 @@ def ingest_data():
     except Exception as e:
         logger.error("Error during ingestion: %s", e)
         raise
-
-def process_data(df):
+def process_data(spark_df):
     try:
         logger.info("Starting data processing")
-        logger.info(f"Pandas DataFrame has {len(df)} rows")
-        spark_df = spark.createDataFrame(df)
-        logger.info(f"Created Spark DataFrame with {spark_df.count()} rows")
+        logger.info(f"Spark DataFrame has {spark_df.count()} rows")
+        logger.info("Spark DataFrame columns: %s", spark_df.columns)
+        logger.info("Spark DataFrame schema: %s", spark_df.dtypes)
         spark_df = spark_df.withColumn(
             "pickup_hour",
-            F.hour(F.to_timestamp("lpep_pickup_datetime", "yyyy-MM-dd HH:mm:ss"))
+            F.hour(F.to_timestamp("tpep_pickup_datetime", "yyyy-MM-dd HH:mm:ss"))
         )
         logger.info("Extracted pickup_hour column")
         aggregated_df = spark_df.groupBy(
@@ -65,7 +62,7 @@ def process_data(df):
         logger.info("Data processed successfully")
         return aggregated_df
     except Exception as e:
-        logger.error(f"Error during processing: {str(e)}", exc_info=True)
+        logger.error(f"Error during processing: %s", e, exc_info=True)
         raise
 
 def store_data(spark_df):
@@ -100,7 +97,25 @@ def get_taxi_data():
     except Exception as e:
         logger.error("Error retrieving data: %s", e)
         return jsonify({"error": str(e)}), 500
-
+@app.route("/api/test_spark", methods=["GET"])
+def test_spark():
+    try:
+        logger.info("Testing Spark DataFrame conversion")
+        df = pd.read_csv(DATA_PATH)
+        logger.info(f"Pandas DataFrame has {len(df)} rows")
+        logger.info("Pandas DataFrame columns: %s", df.columns.tolist())
+        logger.info("Pandas DataFrame dtypes: %s", df.dtypes.to_dict())
+        # Convert datetime columns to string
+        for col in df.columns:
+            if pd.api.types.is_datetime64_any_dtype(df[col]):
+                df[col] = df[col].astype(str)
+        spark_df = spark.createDataFrame(df)
+        row_count = spark_df.count()
+        logger.info(f"Created Spark DataFrame with {row_count} rows")
+        return jsonify({"status": "success", "row_count": row_count})
+    except Exception as e:
+        logger.error(f"Error in test_spark: {str(e)}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
 def run_scheduler():
     """Run the pipeline on a schedule (simulated quarterly)."""
     schedule.every(10).seconds.do(schedule_pipeline)  # For demo, run every 10s
