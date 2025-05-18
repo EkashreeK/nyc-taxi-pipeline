@@ -1,10 +1,11 @@
 FROM python:3.9-slim
 WORKDIR /app
 
-# Install Java and procps (for ps command)
+# Install Java, procps (for ps command), and curl
 RUN apt-get update && apt-get install -y \
     openjdk-17-jre-headless \
     procps \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Set JAVA_HOME environment variable
@@ -15,14 +16,16 @@ ENV PATH=$JAVA_HOME/bin:$PATH
 COPY config/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Download MongoDB Spark Connector JAR
+# Download MongoDB Spark Connector JAR and its dependency
 RUN mkdir -p /app/jars && \
-    curl -o /app/jars/mongo-spark-connector_2.12-10.3.0.jar \
-    https://repo1.maven.org/maven2/org/mongodb/spark/mongo-spark-connector_2.12/10.3.0/mongo-spark-connector_2.12-10.3.0.jar
+    curl -o /app/jars/mongo-spark-connector_2.12-3.0.2.jar \
+    https://repo1.maven.org/maven2/org/mongodb/spark/mongo-spark-connector_2.12/3.0.2/mongo-spark-connector_2.12-3.0.2.jar && \
+    curl -o /app/jars/mongo-java-driver-3.12.14.jar \
+    https://repo1.maven.org/maven2/org/mongodb/mongo-java-driver/3.12.14/mongo-java-driver-3.12.14.jar && \
+    ls -lh /app/jars
 
 # Copy application files
 COPY src/ src/
-COPY nyc_taxi_data.csv .
 
 EXPOSE 5000
-CMD ["python", "src/pipeline.py"]
+CMD ["python", "src/main.py"]

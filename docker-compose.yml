@@ -5,15 +5,37 @@ services:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
   pipeline:
+    build:
+      context: .
+      dockerfile: config/Dockerfile
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - C:/Users/hp/Desktop/nyc-taxi-prediction/nyc_taxi_data_small.csv:/app/nyc_taxi_data_small.csv
+    restart: unless-stopped
+  api:
     build:
       context: .
       dockerfile: config/Dockerfile
     ports:
       - "5000:5000"
     depends_on:
-      - mongo
-    environment:
-      - FLASK_ENV=development
+      mongo:
+        condition: service_healthy
+    command: python src/api.py
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/taxi_data", "-H", "X-API-Key: your-secret-key"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
 volumes:
   mongo-data:
