@@ -106,15 +106,14 @@ The pipeline was tested with the smaller dataset (`nyc_taxi_data_small.csv`, 10,
     {"pickup_hour": 18, "trip_count": 487}
 ]
 ```
-The total trip count (10,000) matches the dataset size, confirming correct aggregation. The pipeline was then scaled to the full dataset (`nyc_taxi_data.csv`, 12.7 million rows). The API returned 24 rows (one for each hour), with trip counts summing to 12.7 million, confirming successful processing of the full dataset.
 
 ## System Qualities
 - **Reliability**: Comprehensive error handling and logging are implemented throughout the pipeline and API. Each stage (`ingest.py`, `process.py`, `store.py`, `api.py`) logs errors and raises exceptions for debugging.
 - **Scalability**: Spark partitioning (`spark.sql.shuffle.partitions=400`) and memory settings (`spark.driver.memory=4g`, `spark.executor.memory=4g`) ensure scalability for large datasets like the full 12.7 million rows.
 - **Maintainability**: Dockerized microservices (`mongo`, `api`, `pipeline`) and a modular code structure (separate scripts for each pipeline stage) enhance maintainability. The single `requirements.txt` avoids dependency conflicts.
 - **Data Security**: Local deployment minimizes exposure. The Flask API is secured with API key authentication, preventing unauthorized access.
-- **Governance**: Code is version-controlled in Git, with clear documentation in this README. All reviewer feedback has been addressed with detailed updates.
-- **Protection**: No sensitive data is exposed in the current setup. The dataset contains anonymized taxi trip data.
+- **Governance**: Code is version-controlled in Git, with clear documentation in this README.
+- - **Protection**: No sensitive data is exposed in the current setup. The dataset contains anonymized taxi trip data.
 
 ## Future Improvements
 - **Authentication Enhancements**: Add MongoDB authentication and move the Flask API key to environment variables for better security.
