@@ -16,7 +16,7 @@ This project implements a batch processing pipeline for NYC taxi trip data using
 - **nyc_taxi_data.csv**: Full dataset (12.7 million rows, not included in repo due to size).
 - **nyc_taxi_data_small.csv**: Smaller dataset for testing (10,000 rows, not included in repo due to size).
 - **docker-compose.yml**: Docker Compose configuration for microservices.
-- **github_link.txt**: Contains the GitHub repository link for submission.
+
 
 ## Setup Instructions
 
