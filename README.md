@@ -113,7 +113,7 @@ The pipeline was tested with the smaller dataset (`nyc_taxi_data_small.csv`, 10,
 - **Maintainability**: Dockerized microservices (`mongo`, `api`, `pipeline`) and a modular code structure (separate scripts for each pipeline stage) enhance maintainability. The single `requirements.txt` avoids dependency conflicts.
 - **Data Security**: Local deployment minimizes exposure. The Flask API is secured with API key authentication, preventing unauthorized access.
 - **Governance**: Code is version-controlled in Git, with clear documentation in this README.
-- - **Protection**: No sensitive data is exposed in the current setup. The dataset contains anonymized taxi trip data.
+- **Protection**: No sensitive data is exposed in the current setup. The dataset contains anonymized taxi trip data.
 
 ## Future Improvements
 - **Authentication Enhancements**: Add MongoDB authentication and move the Flask API key to environment variables for better security.
