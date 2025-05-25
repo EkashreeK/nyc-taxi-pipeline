@@ -12,6 +12,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Log immediately to confirm script execution
+logger.info("Main script started")
+
 DATA_PATH = "./nyc_taxi_data_small.csv"
 
 spark = SparkSession.builder \
